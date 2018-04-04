@@ -1,45 +1,35 @@
-import { fakeAsync, tick } from '@angular/core/testing';
+// TODO: wait for next version angular
+// import { fakeAsync, tick } from '@angular/core/testing';
 import { interval } from 'rxjs/observable/interval';
 import { take } from 'rxjs/operators';
 
-class FakeNow {
-  private now = new Date();
-
-  constructor() {
-    jasmine.clock().mockDate(this.now);
-  }
-
-  tickSeconds(seconds: number) {
-    this.now = new Date(this.now.getTime() + seconds * 1000);
-    jasmine.clock().mockDate(this.now);
-    tick(seconds * 1000);
-  }
-}
-
+// after new version of angular released, you can
+// use fakeAsync, tick from @angular/core/testing as always
+// and don't forget to add flag in 'src/test.ts'.
+declare let Zone: any;
+const { fakeAsync, tick } = Zone[Zone.__symbol__('fakeAsyncTest')];
 describe('clock test', () => {
+  beforeEach(jasmine.clock().install);
+  afterEach(jasmine.clock().uninstall);
 
-  afterEach(() => jasmine.clock().uninstall());
-
-  it('should fake the clock in fakeAsync', fakeAsync(() => {
+  it('should fake the clock in fakeAsync', () => {
     const start = new Date().getTime();
     let progress = 0;
 
-    const fakeNow = new FakeNow();
+    interval(1000)
+      .pipe(take(3))
+      .subscribe(() => (progress = (new Date().getTime() - start) / 1000));
 
-    interval(1000).pipe(
-      take(3)
-    ).subscribe(() => progress = (new Date().getTime() - start) / 1000);
-
-    fakeNow.tickSeconds(1);
+    tick(1000);
     expect(progress).toBe(1);
 
-    fakeNow.tickSeconds(1);
+    tick(1000);
     expect(progress).toBe(2);
 
-    fakeNow.tickSeconds(1);
+    tick(1000);
     expect(progress).toBe(3);
 
-    fakeNow.tickSeconds(1);
+    tick(1000);
     expect(progress).toBe(3);
-  }));
+  });
 });
